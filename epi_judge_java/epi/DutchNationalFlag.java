@@ -1,4 +1,5 @@
 package epi;
+
 import epi.test_framework.EpiTest;
 import epi.test_framework.GenericTest;
 import epi.test_framework.TestFailure;
@@ -6,58 +7,83 @@ import epi.test_framework.TimedExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
+
 public class DutchNationalFlag {
-  public enum Color { RED, WHITE, BLUE }
+	public enum Color {
+		RED, WHITE, BLUE
+	}
 
-  public static void dutchFlagPartition(int pivotIndex, List<Color> A) {
-    // TODO - you fill in here.
-    return;
-  }
-  @EpiTest(testDataFile = "dutch_national_flag.tsv")
-  public static void dutchFlagPartitionWrapper(TimedExecutor executor,
-                                               List<Integer> A, int pivotIdx)
-      throws Exception {
-    List<Color> colors = new ArrayList<>();
-    int[] count = new int[3];
+	public static void dutchFlagPartition(int pivotIndex, List<Color> A) {
+		int pivotValue = A.get(pivotIndex).ordinal();
+		List<Color> lesserThanPivot = new ArrayList<>();
+		List<Color> equalsThanPivot = new ArrayList<>();
+		List<Color> greaterThanPivot = new ArrayList<>();
 
-    Color[] C = Color.values();
-    for (int i = 0; i < A.size(); i++) {
-      count[A.get(i)]++;
-      colors.add(C[A.get(i)]);
-    }
+		for (Color color : A) {
+			int current = color.ordinal();
+			if (current < pivotValue)
+				lesserThanPivot.add(color);
+			else if (current == pivotValue)
+				equalsThanPivot.add(color);
+			else
+				greaterThanPivot.add(color);
+		}
 
-    Color pivot = colors.get(pivotIdx);
-    executor.run(() -> dutchFlagPartition(pivotIdx, colors));
+		for (int i = 0; i < lesserThanPivot.size(); i++) {
+			A.set(i, lesserThanPivot.get(i));
+		}
 
-    int i = 0;
-    while (i < colors.size() && colors.get(i).ordinal() < pivot.ordinal()) {
-      count[colors.get(i).ordinal()]--;
-      ++i;
-    }
+		int start = lesserThanPivot.size();
+		for (int i = 0; i < equalsThanPivot.size(); i++) {
+			A.set(start++, equalsThanPivot.get(i));
+		}
 
-    while (i < colors.size() && colors.get(i).ordinal() == pivot.ordinal()) {
-      count[colors.get(i).ordinal()]--;
-      ++i;
-    }
+		for (int i = 0; i < greaterThanPivot.size(); i++) {
+			A.set(start++, greaterThanPivot.get(i));
+		}
+		return;
+	}
 
-    while (i < colors.size() && colors.get(i).ordinal() > pivot.ordinal()) {
-      count[colors.get(i).ordinal()]--;
-      ++i;
-    }
+	@EpiTest(testDataFile = "dutch_national_flag.tsv")
+	public static void dutchFlagPartitionWrapper(TimedExecutor executor, List<Integer> A, int pivotIdx)
+			throws Exception {
+		List<Color> colors = new ArrayList<>();
+		int[] count = new int[3];
 
-    if (i != colors.size()) {
-      throw new TestFailure("Not partitioned after " + Integer.toString(i) +
-                            "th element");
-    } else if (count[0] != 0 || count[1] != 0 || count[2] != 0) {
-      throw new TestFailure("Some elements are missing from original array");
-    }
-  }
+		Color[] C = Color.values();
+		for (int i = 0; i < A.size(); i++) {
+			count[A.get(i)]++;
+			colors.add(C[A.get(i)]);
+		}
 
-  public static void main(String[] args) {
-    System.exit(
-        GenericTest
-            .runFromAnnotations(args, "DutchNationalFlag.java",
-                                new Object() {}.getClass().getEnclosingClass())
-            .ordinal());
-  }
+		Color pivot = colors.get(pivotIdx);
+		executor.run(() -> dutchFlagPartition(pivotIdx, colors));
+
+		int i = 0;
+		while (i < colors.size() && colors.get(i).ordinal() < pivot.ordinal()) {
+			count[colors.get(i).ordinal()]--;
+			++i;
+		}
+
+		while (i < colors.size() && colors.get(i).ordinal() == pivot.ordinal()) {
+			count[colors.get(i).ordinal()]--;
+			++i;
+		}
+
+		while (i < colors.size() && colors.get(i).ordinal() > pivot.ordinal()) {
+			count[colors.get(i).ordinal()]--;
+			++i;
+		}
+
+		if (i != colors.size()) {
+			throw new TestFailure("Not partitioned after " + Integer.toString(i) + "th element");
+		} else if (count[0] != 0 || count[1] != 0 || count[2] != 0) {
+			throw new TestFailure("Some elements are missing from original array");
+		}
+	}
+
+	public static void main(String[] args) {
+		System.exit(GenericTest.runFromAnnotations(args, "DutchNationalFlag.java", new Object() {
+		}.getClass().getEnclosingClass()).ordinal());
+	}
 }
